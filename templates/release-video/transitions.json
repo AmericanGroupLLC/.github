@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "default_scene_seconds": 4,
+  "intro_seconds": 3,
+  "outro_seconds": 3,
+  "fade_seconds": 0.5,
+  "viewport": { "width": 1280, "height": 720 },
+  "caption": {
+    "font": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "size": 36,
+    "color": "white",
+    "box": 1,
+    "boxcolor": "black@0.55",
+    "boxborderw": 16,
+    "y_from_bottom": 80
+  }
+}

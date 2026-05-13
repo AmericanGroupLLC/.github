@@ -1,0 +1,98 @@
+% Pandoc XeLaTeX template for AmericanGroupLLC release books.
+% Brand colour is injected via -V brandcolor=RRGGBB at build time.
+\documentclass[11pt,letterpaper,oneside]{report}
+
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage[margin=1in,top=1.1in,bottom=1.1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{longtable,booktabs,array}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+% Brand colour, default if not provided.
+$if(brandcolor)$
+\definecolor{brand}{HTML}{$brandcolor$}
+$else$
+\definecolor{brand}{HTML}{1F6FEB}
+$endif$
+
+% Fonts (DejaVu is in texlive-fonts-extra; Liberation as fallback).
+\setmainfont{DejaVu Serif}[Scale=1.0]
+\setsansfont{DejaVu Sans}[Scale=1.0]
+\setmonofont{DejaVu Sans Mono}[Scale=0.9]
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=brand,
+  urlcolor=brand,
+  pdftitle={$title$},
+  pdfauthor={$author$},
+  pdfsubject={Release Book},
+  bookmarks=true
+}
+
+\titleformat{\chapter}[hang]
+  {\sffamily\Huge\bfseries\color{brand}}
+  {\thechapter}{1em}{}
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{brand!85!black}}
+  {\thesection}{0.7em}{}
+\titleformat{\subsection}
+  {\sffamily\large\bfseries}
+  {\thesubsection}{0.6em}{}
+
+% Plain page style on first page of each chapter; fancy elsewhere.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textsf{\small $title$}}
+\fancyhead[R]{\textsf{\small $version$}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\color{brand}\hrule height 0.4pt}
+
+% Code listings
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  framerule=0pt,
+  backgroundcolor=\color{black!5},
+  rulecolor=\color{brand!50},
+  captionpos=b,
+  showstringspaces=false,
+  columns=flexible
+}
+
+\begin{document}
+
+% ---------- Cover page ----------
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1in}
+    {\sffamily\fontsize{48}{56}\selectfont\bfseries\color{brand} $title$\par}
+    \vspace{0.3in}
+    {\sffamily\Huge Release Book\par}
+    \vspace{0.6in}
+    \rule{0.6\linewidth}{2pt}
+    \vspace{0.4in}\par
+    {\sffamily\LARGE $version$\par}
+    \vspace{0.2in}
+    {\sffamily\large $date$\par}
+    \vfill
+    {\sffamily\large AmericanGroupLLC\par}
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+$body$
+
+\end{document}

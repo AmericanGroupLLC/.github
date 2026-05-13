@@ -1,0 +1,91 @@
+name: Release Video
+
+# Reusable workflow that renders a silent MP4 screencast of the
+# caller repo's marketing index.html driven by a RELEASE-VIDEO-SCRIPT.md
+# scene file. Captions are burned in via ffmpeg drawtext.
+#
+# Inputs:
+#   app-name             - Display name
+#   version              - Version string e.g. "v1.2.0"
+#   video-script-path    - Path to RELEASE-VIDEO-SCRIPT.md in caller (default)
+#   marketing-html-path  - Path to index.html in caller (default)
+#   brand-color          - Hex colour for title/outro cards
+#
+# Output artifact: release-video-mp4 containing
+#   <AppName>-Release-<version>.mp4
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      video-script-path:
+        type: string
+        required: false
+        default: RELEASE-VIDEO-SCRIPT.md
+      marketing-html-path:
+        type: string
+        required: false
+        default: index.html
+      brand-color:
+        type: string
+        required: false
+        default: "#1F6FEB"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build MP4 release video
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+
+      - name: Checkout shared umbrella tooling
+        uses: actions/checkout@v4
+        with:
+          repository: AmericanGroupLLC/AmericanGroupLLC
+          path: .umbrella
+          ref: master
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ffmpeg + fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg fonts-dejavu fonts-liberation
+          ffmpeg -version | head -n1
+
+      - name: Install Playwright (chromium only)
+        run: |
+          npm init -y --silent
+          npm i --silent playwright@1.48.0
+          npx playwright install --with-deps chromium
+
+      - name: Build video
+        env:
+          APP_NAME: ${{ inputs.app-name }}
+          VERSION: ${{ inputs.version }}
+          BRAND_COLOR: ${{ inputs.brand-color }}
+          VIDEO_SCRIPT: ${{ inputs.video-script-path }}
+          MARKETING_HTML: ${{ inputs.marketing-html-path }}
+        run: |
+          bash .umbrella/scripts/build-release-video.sh \
+            "$APP_NAME" "$VERSION" "$BRAND_COLOR" \
+            "$VIDEO_SCRIPT" "$MARKETING_HTML"
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-video-mp4
+          path: ${{ inputs.app-name }}-Release-${{ inputs.version }}.mp4
+          if-no-files-found: error

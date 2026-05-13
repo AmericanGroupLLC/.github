@@ -1,0 +1,83 @@
+name: Release Book
+
+# Reusable workflow that compiles a list of markdown docs in the
+# CALLER repository into a single styled PDF using pandoc + XeLaTeX.
+# Called from each product repo's release.yml at tag time.
+#
+# Inputs:
+#   app-name     - Display name (e.g. "Drift", "FitFusion")
+#   version      - Version string including leading "v" (e.g. "v1.2.0")
+#   brand-color  - Hex colour (e.g. "#FF6B9D") used on cover + headers
+#   docs         - JSON array string of markdown filenames in caller repo,
+#                  in the order they should appear, e.g.
+#                  '["README.md","QUICKSTART.md","DESIGN.md"]'
+#
+# Output artifact: release-book-pdf containing
+#   <AppName>-Release-Book-<version>.pdf
+
+on:
+  workflow_call:
+    inputs:
+      app-name:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      brand-color:
+        type: string
+        required: false
+        default: "#1F6FEB"
+      docs:
+        type: string
+        required: true
+        description: JSON array of markdown paths (relative to caller repo root)
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build PDF release book
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v4
+
+      - name: Checkout shared umbrella tooling
+        uses: actions/checkout@v4
+        with:
+          repository: AmericanGroupLLC/AmericanGroupLLC
+          path: .umbrella
+          ref: master
+
+      - name: Install pandoc + XeLaTeX + fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pandoc \
+            texlive-xetex \
+            texlive-fonts-recommended \
+            texlive-fonts-extra \
+            texlive-latex-extra \
+            fonts-dejavu \
+            jq
+          pandoc --version | head -n1
+          xelatex --version | head -n1
+
+      - name: Build PDF
+        env:
+          APP_NAME: ${{ inputs.app-name }}
+          VERSION: ${{ inputs.version }}
+          BRAND_COLOR: ${{ inputs.brand-color }}
+          DOCS_JSON: ${{ inputs.docs }}
+        run: |
+          bash .umbrella/scripts/build-release-book.sh \
+            "$APP_NAME" "$VERSION" "$BRAND_COLOR" "$DOCS_JSON"
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-book-pdf
+          path: ${{ inputs.app-name }}-Release-Book-${{ inputs.version }}.pdf
+          if-no-files-found: error

@@ -1,0 +1,48 @@
+name: Validate README
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check README exists
+        run: |
+          if [ ! -f README.md ]; then
+            echo "ERROR: README.md not found!"
+            exit 1
+          fi
+          echo "✓ README.md found ($(wc -l < README.md) lines)"
+
+      - name: Check for broken badge URLs
+        run: |
+          echo "Checking shield.io badge URLs..."
+          grep -oP 'https://img\.shields\.io/[^\s)"<>]+' README.md | while read url; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo 000)
+            if [ "$status" -eq 200 ]; then
+              echo "  ✓ $url"
+            else
+              echo "  ✗ $url (HTTP $status)"
+            fi
+          done
+          echo "Badge check complete."
+
+      - name: Check for broken links
+        run: |
+          echo "Checking external links..."
+          grep -oP 'https?://[^\s)"<>|]+' README.md | sort -u | head -20 | while read url; do
+            status=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 "$url" 2>/dev/null || echo 000)
+            if [ "$status" -ge 200 ] && [ "$status" -lt 400 ]; then
+              echo "  ✓ $url"
+            else
+              echo "  ⚠ $url (HTTP $status)"
+            fi
+          done
+          echo "Link check complete."

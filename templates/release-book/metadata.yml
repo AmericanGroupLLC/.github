@@ -1,0 +1,9 @@
+# Pandoc metadata defaults shared by all release books.
+author: AmericanGroupLLC
+lang: en-US
+papersize: letter
+documentclass: report
+toc: true
+toc-depth: 2
+numbersections: true
+linkcolor: brand

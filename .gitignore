@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.iml
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+secrets.local.*
+
+# Build / scratch
+dist/
+build/
+node_modules/
+.cache/
+*.log
+.scratch/
